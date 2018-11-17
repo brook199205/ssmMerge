@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.ssm.Dao.DepDao">
+
+    <resultMap id="depMap" type="com.atguigu.ssm.beans.Department">
+        <id column="id" property="id"/>
+        <result column="dep_name" property="depName"/>
+        <collection property="employeeList" fetchType="lazy" select="com.atguigu.ssm.Dao.EmpDao.getEmpsByDepid"
+                    column="id"/>
+    </resultMap>
+
+
+    <select id="getDepById" resultMap="depMap">
+        select * from test_mybatis.department where id = #{id}
+    </select>
+
+</mapper>

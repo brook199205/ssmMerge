@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd
+        http://www.alibaba.com/schema/stat http://www.alibaba.com/schema/stat.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd ">
+
+
+    <!--配置组件扫描包,排除controller,把controller交给springMVC管理-->
+    <context:component-scan base-package="com.atguigu.ssm">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!--数据库连接池配置-->
+    <!--方式1-->
+    <context:property-placeholder location="classpath:druid.properties"/>
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driverClassName}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+    <!--方式2-->
+    <!--<util:properties location="classpath:druid.properties" local-override="true" id="myProp"/>-->
+
+    <!--<bean class="com.alibaba.druid.pool.DruidDataSourceFactory" id="dataSource" factory-method="createDataSource">-->
+    <!--<constructor-arg ref="myProp"/>-->
+    <!--</bean>-->
+
+    <bean id="dataSourceTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="dataSourceTransactionManager"/>
+
+    <!-- Spring 整合 Mybatis -->
+    <bean name="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--  有一个必须的属性是数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+
+        <!-- 指定Mybatis全局Configuration对象，或者是配置文件的位置 -->
+        <property name="configLocation" value="classpath:mybatis.xml"/>
+
+        <!-- 批量起别名 -->
+        <property name="typeAliasesPackage" value="com.atguigu.ssm.beans"/>
+
+        <!-- 批量注册sql -->
+        <property name="mapperLocations" value="classpath:com/atguigu/ssm/Dao/*.xml"/>
+    </bean>
+
+    <!-- Mapper接口MapperScannerConfigurer
+    为指定包下的Mapper接口批量生成代理实现类.bean的默认id是接口名首字母小写.  -->
+
+    <!--方式一-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com/atguigu/ssm/Dao"/>
+        <!--<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>-->
+    </bean>
+    <!--方式2-->
+    <!--<mybatis-spring:scan base-package="com.atguigu.ssm.Dao"/>-->
+
+</beans>
+

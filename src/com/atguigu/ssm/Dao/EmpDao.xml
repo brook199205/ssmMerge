@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<!--绑定被实现的接口-->
+<mapper namespace="com.atguigu.ssm.Dao.EmpDao">
+
+
+    <resultMap id="EmpDep" type="com.atguigu.ssm.beans.Employee">
+        <id column="id" property="id"/>
+        <result column="last_name" property="last_name"/>
+        <result column="email" property="email"/>
+        <result column="gender" property="gender"/>
+        <result column="dep_id" property="department.id"/>
+        <result column="dep_name" property="department.depName"/>
+    </resultMap>
+
+
+    <resultMap id="Emp" type="com.atguigu.ssm.beans.Employee" extends="EmpDep">
+
+        <association property="department" column="dep_id"
+                     select="com.atguigu.ssm.Dao.DepDao.getDepById" fetchType="lazy"/>
+
+    </resultMap>
+
+    <!--id名必须和接口的方法名一致才能绑定至方法-->
+    <select id="getEmpById" resultType="com.atguigu.ssm.beans.Employee">
+        select * from tbl_employee where id = #{id}
+    </select>
+
+    <!--通过useGeneratedKeys属性获取自增主键-->
+    <insert id="addEmp" useGeneratedKeys="true" keyProperty="id">
+    insert into test_mybatis.tbl_employee values (#{id},#{last_name},#{email},#{gender})
+    </insert>
+
+    <!--指定集合中元素的类型即可获取集合-->
+    <select id="getEmpsById" resultType="com.atguigu.ssm.beans.Employee">
+
+        select * from test_mybatis.tbl_employee where id > #{id}
+
+    </select>
+
+    <!--查询结果封装为map，以列名为键，列值为值，适用于查询单条记录&ndash;&gt;-->
+    <!--<select id="getEmpsMap" resultType="map">-->
+    <!--select * from test_mybatis.tbl_employee where id = #{id}-->
+    <!--</select>-->
+
+    <select id="getEmpsMap" resultType="map">
+        select * from test_mybatis.tbl_employee where id > #{id}
+    </select>
+
+
+    <select id="getEmpsByDepid" resultMap="EmpDep">
+    select e.*,d.dep_name from test_mybatis.tbl_employee e
+    left join test_mybatis.department d on e.dep_id = d.id
+    where dep_id =#{dep_id}
+    </select>
+
+    <!--#{}先编译后填充。 ${}： 直接拼串，会有SQL注入的风险.-->
+    <insert id="insertOne">
+   insert into ${table} values (#{id},#{lastName},#{email},#{gender})
+    </insert>
+
+    <select id="getEmpsByEmpInfo" resultMap="EmpDep">
+        select * from test_mybatis.tbl_employee where
+        -- where 标签
+        <!--<where>-->
+        <!--<if test="id != null">id=#{id}</if>-->
+        <!--<if test="last_name != null and last_name != ''">and last_name=#{last_name}</if>-->
+        <!--<if test="email != null and email != ''">and email=#{email}</if>-->
+        <!--<if test="gender != null and gender != ''">and gender=#{gender}</if>-->
+        <!--</where>-->
+
+        -- trim标签对拼接语句前后进行替换
+        <!--<trim prefix="where" prefixOverrides="and" suffix="" suffixOverrides="">-->
+        <!--<if test="id != null">and id=#{id}</if>-->
+        <!--<if test="last_name != null and last_name != ''">and last_name=#{last_name}</if>-->
+        <!--<if test="email != null and email != ''">and email=#{email}</if>-->
+        <!--<if test="gender != null and gender != ''">and gender=#{gender}</if>-->
+        <!--</trim>-->
+
+        <trim prefix="" prefixOverrides="and">
+            <choose>
+                <when test="id != null">
+                    and id=#{id}
+                </when>
+                <when test="last_name != null and last_name != ''">
+                    and last_name=#{last_name}
+                </when>
+                <when test="email != null and email != ''">
+                    and email=#{email}
+                </when>
+                <when test="gender != null and gender != ''">
+                    and gender=#{gender}
+                </when>
+                <otherwise>
+                    id=1
+                </otherwise>
+            </choose>
+        </trim>
+    </select>
+
+    <insert id="batchAddEmp" >
+        insert into test_mybatis.tbl_employee (last_name, email, gender) values
+        <foreach collection="list" separator=","  item="item" >
+            (#{item.last_name},#{item.email},#{item.gender})
+        </foreach>
+    </insert>
+</mapper>
